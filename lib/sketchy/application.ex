@@ -2,6 +2,8 @@ defmodule Sketchy.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
+  alias Sketchy.GameRegistry
+  alias Sketchy.GameSupervisor
 
   use Application
 
@@ -18,7 +20,9 @@ defmodule Sketchy.Application do
       # Start a worker by calling: Sketchy.Worker.start_link(arg)
       # {Sketchy.Worker, arg},
       # Start to serve requests, typically the last entry
-      SketchyWeb.Endpoint
+      SketchyWeb.Endpoint,
+      GameSupervisor,
+      {Registry, [keys: :unique, name: GameRegistry.name()]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
