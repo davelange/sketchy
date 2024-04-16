@@ -5,7 +5,7 @@ defmodule SketchyWeb.LiveHome do
 
   def render(assigns) do
     ~H"""
-    <.svelte name="Home" socket={@socket} ssr={false} />
+    <.svelte name="Home" socket={@socket} />
     """
   end
 
