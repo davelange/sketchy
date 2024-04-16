@@ -18,7 +18,9 @@ defmodule SketchyWeb.Router do
   scope "/", SketchyWeb do
     pipe_through :browser
 
-    live "/", LiveMain
+    live "/", LiveHome
+
+    live "/game/:id", LiveGame
   end
 
   # Other scopes may use custom stacks.
