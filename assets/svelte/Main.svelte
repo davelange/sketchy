@@ -1,6 +1,7 @@
 <script lang="ts">
+  import socket from "js/user_socket";
+
   export let number: number;
-  export let live;
 
   let count = number;
 </script>

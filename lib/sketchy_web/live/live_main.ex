@@ -3,7 +3,7 @@ defmodule SketchyWeb.LiveMain do
 
   def render(assigns) do
     ~H"""
-    <.svelte name="Main" props={%{number: @number}} socket={@socket} />
+    <.svelte name="Main" props={%{number: @number}} socket={@socket} ssr={false} />
     """
   end
 
