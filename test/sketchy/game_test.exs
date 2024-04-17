@@ -4,7 +4,7 @@ defmodule Sketchy.GameTest do
   alias Sketchy.Game
 
   setup do
-    {:ok, pid} = Game.start_link(%{id: "123"})
+    pid = start_supervised!({Game, %{id: "123"}})
 
     %{pid: pid}
   end

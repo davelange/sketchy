@@ -4,11 +4,10 @@ defmodule SketchyWeb.GameChannelTest do
   alias Sketchy.Game
 
   setup do
-    game = Game.start_link(%{id: "1"})
-
+    start_supervised!({Game, %{id: "1"}})
     socket = socket(SketchyWeb.UserSocket)
 
-    %{socket: socket, game: game}
+    %{socket: socket}
   end
 
   test "fails join when game not created", %{socket: socket} do

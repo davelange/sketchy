@@ -13,7 +13,7 @@ defmodule Sketchy.GameRegistryTest do
   end
 
   test "returns Game pid registered with id successfully" do
-    Game.start_link(%{id: @game_id})
+    start_supervised!({Game, %{id: @game_id}})
 
     assert {:ok, _pid} = GameRegistry.get_pid(@game_id)
   end
