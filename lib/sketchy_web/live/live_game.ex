@@ -3,11 +3,11 @@ defmodule SketchyWeb.LiveGame do
 
   def render(assigns) do
     ~H"""
-    <.svelte name="Game" props={%{id: @id}} socket={@socket} ssr={false} />
+    <.svelte name="pages/Game" props={%{gameId: @gameId}} socket={@socket} ssr={false} />
     """
   end
 
   def mount(params, _session, socket) do
-    {:ok, assign(socket, :id, params["id"])}
+    {:ok, assign(socket, :gameId, params["id"])}
   end
 end
