@@ -27,4 +27,14 @@ defmodule SketchyWeb.GameChannel do
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
   end
+
+  @impl true
+  def handle_in("user_action", payload, socket) do
+    case get_game_pid(socket.topic) do
+      {:ok, pid} -> Game.user_action(pid, payload)
+      _ -> nil
+    end
+
+    {:noreply, socket}
+  end
 end
