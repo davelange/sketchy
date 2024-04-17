@@ -120,7 +120,7 @@ defmodule Sketchy.Game do
 
   @impl true
   def handle_call(:get_state, _from, state) do
-    {:reply, state, state}
+    {:reply, get_public_state(state), state}
   end
 
   @impl true
