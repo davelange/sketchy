@@ -1,4 +1,4 @@
-defmodule Sketchy.GameRegistry do
+defmodule Sketchy.Game.Registry do
   @reg_name :account_process_registry
 
   def name, do: @reg_name

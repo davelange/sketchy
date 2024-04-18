@@ -13,8 +13,6 @@ defmodule Sketchy.GameSupervisor do
   end
 
   def start_child(game_id) do
-    params = %{id: game_id}
-
-    DynamicSupervisor.start_child(:game_supervisor, {Game, params})
+    DynamicSupervisor.start_child(:game_supervisor, {Game, %{id: game_id}})
   end
 end

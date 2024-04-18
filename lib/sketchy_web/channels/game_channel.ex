@@ -1,21 +1,18 @@
 defmodule SketchyWeb.GameChannel do
   use SketchyWeb, :channel
 
-  alias Sketchy.GameRegistry
-  alias Sketchy.Game
+  alias Sketchy.Game.Registry, as: GameRegistry
+  alias Sketchy.Game.Server, as: GameServer
+  alias Sketchy.Game.Helpers
 
   @impl true
   def join("game:" <> game_id, payload, socket) do
-    with {:ok, pid} <- get_game_pid(game_id), state <- Game.get_game_state(pid) do
-      new_user = %{
-        name: payload["user"],
-        id: Ecto.UUID.generate()
-      }
+    with {:ok, pid} <- get_game_pid(game_id), state <- GameServer.get_state(pid) do
+      new_user = Helpers.create_user(payload["name"])
 
-      Game.join(pid, new_user)
-      response = Map.merge(state, %{self: new_user})
+      GameServer.join(pid, new_user)
 
-      {:ok, response, socket}
+      {:ok, Map.merge(state, %{self: new_user}), socket}
     else
       _ -> {:error, "game not found"}
     end
@@ -31,7 +28,7 @@ defmodule SketchyWeb.GameChannel do
   @impl true
   def handle_in("user_action", payload, socket) do
     case get_game_pid(socket.topic) do
-      {:ok, pid} -> Game.user_action(pid, payload)
+      {:ok, pid} -> GameServer.user_action(pid, payload)
       _ -> nil
     end
 

@@ -1,7 +1,7 @@
 defmodule Sketchy.Game do
   use GenServer
 
-  alias SketchyWeb.Endpoint, as: Endpoint
+  alias Sketchy.Broadcaster
   alias Sketchy.GameRegistry
 
   @inter_turn_timer_duration 5_000
@@ -127,7 +127,7 @@ defmodule Sketchy.Game do
   def handle_cast({:join, user}, state) do
     new_user = Map.put(user, :guessed, false)
     new_state = Map.put(state, :users, [new_user | state.users])
-    Endpoint.broadcast(state.topic, "user_joined", new_user)
+    Broadcaster.call(state.topic, "user_joined", new_user)
 
     {:noreply, new_state}
   end
@@ -139,7 +139,7 @@ defmodule Sketchy.Game do
       ) do
     new_state = start_new_turn(state)
 
-    Endpoint.broadcast(state.topic, "turn_update", get_public_state(new_state))
+    Broadcaster.call(state.topic, "turn_update", get_public_state(new_state))
 
     {:noreply, new_state}
   end
@@ -155,7 +155,7 @@ defmodule Sketchy.Game do
       |> Map.put(:word, value)
       |> Map.put(:timer, schedule_turn_end(state))
 
-    Endpoint.broadcast(state.topic, "turn_update", get_public_state(new_state))
+    Broadcaster.call(state.topic, "turn_update", get_public_state(new_state))
 
     {:noreply, new_state}
   end
@@ -166,7 +166,7 @@ defmodule Sketchy.Game do
       ) do
     new_state = Map.put(state, :shapes, List.flatten([shapes | state.shapes]))
 
-    Endpoint.broadcast(state.topic, "shapes_updated", payload)
+    Broadcaster.call(state.topic, "shapes_updated", payload)
 
     {:noreply, new_state}
   end
@@ -180,14 +180,14 @@ defmodule Sketchy.Game do
 
     new_state = state |> update_user_guessed(user, correct) |> maybe_end_turn()
 
-    Endpoint.broadcast(state.topic, "user_guess", %{
+    Broadcaster.call(state.topic, "user_guess", %{
       user: user,
       correct: correct,
       value: value
     })
 
     if new_state.status == "turn_over" do
-      Endpoint.broadcast(state.topic, "turn_update", get_public_state(new_state))
+      Broadcaster.call(state.topic, "turn_update", get_public_state(new_state))
     end
 
     {:noreply, new_state}
@@ -197,7 +197,7 @@ defmodule Sketchy.Game do
   def handle_info(:turn_time_ended, state) do
     new_state = end_turn(state)
 
-    Endpoint.broadcast(state.topic, "turn_update", get_public_state(new_state))
+    Broadcaster.call(state.topic, "turn_update", get_public_state(new_state))
 
     {:noreply, state}
   end
@@ -206,7 +206,7 @@ defmodule Sketchy.Game do
   def handle_info(:inter_turn_time_ended, state) do
     new_state = start_new_turn(state)
 
-    Endpoint.broadcast(state.topic, "turn_update", get_public_state(new_state))
+    Broadcaster.call(state.topic, "turn_update", get_public_state(new_state))
 
     {:noreply, new_state}
   end

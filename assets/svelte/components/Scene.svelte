@@ -35,7 +35,6 @@
   });
 
   function onJoin(data: OnJoinData) {
-    console.log({ data });
     userId = data.self.id;
     users = [...data.users, data.self];
     $canvas.shapes = data.shapes;
