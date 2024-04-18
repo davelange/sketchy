@@ -1,17 +1,16 @@
 defmodule Sketchy.Game.Server do
   use GenServer
 
-  alias Sketchy.Game.Helpers
   alias Sketchy.Game.Core
-  alias Sketchy.Game.Registry
+  alias Sketchy.Game.GameRegistry
 
   # Client
 
   def start_link(params) do
     GenServer.start_link(
       __MODULE__,
-      Helpers.get_initial_state(params),
-      name: Registry.get_via(params.id)
+      Core.get_initial_state(params),
+      name: GameRegistry.get_via(params.id)
     )
   end
 
@@ -30,7 +29,7 @@ defmodule Sketchy.Game.Server do
 
   @impl true
   def handle_call(:get_state, _from, state) do
-    {:reply, Helpers.get_public_state(state), state}
+    {:reply, Core.get_public_state(state), state}
   end
 
   @impl true
@@ -67,5 +66,15 @@ defmodule Sketchy.Game.Server do
         state
       ) do
     {:noreply, Core.guess(state, payload)}
+  end
+
+  @impl true
+  def handle_info(:turn_time_ended, state) do
+    {:noreply, Core.end_turn(state)}
+  end
+
+  @impl true
+  def handle_info(:inter_turn_time_ended, state) do
+    {:noreply, Core.start_pending_turn(state)}
   end
 end

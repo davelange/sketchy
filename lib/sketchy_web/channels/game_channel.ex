@@ -1,14 +1,14 @@
 defmodule SketchyWeb.GameChannel do
   use SketchyWeb, :channel
 
-  alias Sketchy.Game.Registry, as: GameRegistry
+  alias Sketchy.Game.GameRegistry
+  alias Sketchy.Game.Core
   alias Sketchy.Game.Server, as: GameServer
-  alias Sketchy.Game.Helpers
 
   @impl true
   def join("game:" <> game_id, payload, socket) do
     with {:ok, pid} <- get_game_pid(game_id), state <- GameServer.get_state(pid) do
-      new_user = Helpers.create_user(payload["name"])
+      new_user = Core.create_user(payload["user"])
 
       GameServer.join(pid, new_user)
 

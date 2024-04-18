@@ -1,7 +1,7 @@
-defmodule Sketchy.GameSupervisor do
+defmodule Sketchy.Game.GameSupervisor do
   use DynamicSupervisor
 
-  alias Sketchy.Game
+  alias Sketchy.Game.Server
 
   def start_link(_initial) do
     DynamicSupervisor.start_link(__MODULE__, :ok, name: :game_supervisor)
@@ -13,6 +13,6 @@ defmodule Sketchy.GameSupervisor do
   end
 
   def start_child(game_id) do
-    DynamicSupervisor.start_child(:game_supervisor, {Game, %{id: game_id}})
+    DynamicSupervisor.start_child(:game_supervisor, {Server, %{id: game_id}})
   end
 end
