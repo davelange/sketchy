@@ -12,7 +12,7 @@ defmodule SketchyWeb.GameChannel do
 
       GameServer.join(pid, new_user)
 
-      {:ok, Map.merge(state, %{self: new_user}), socket}
+      {:ok, Map.merge(state, %{self: new_user}), assign(socket, :user_id, new_user.id)}
     else
       _ -> {:error, "game not found"}
     end
@@ -33,5 +33,11 @@ defmodule SketchyWeb.GameChannel do
     end
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def terminate({:shutdown, :local_closed}, socket) do
+    {:ok, pid} = get_game_pid(socket.topic)
+    GameServer.leave(pid, socket.assigns.user_id)
   end
 end

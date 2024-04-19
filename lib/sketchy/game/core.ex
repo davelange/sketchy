@@ -14,6 +14,12 @@ defmodule Sketchy.Game.Core do
     broadcast(Map.put(state, :users, [user | state.users]), "user_joined")
   end
 
+  def leave(state, user_id) do
+    new_users = Enum.filter(state.users, &(&1.id != user_id))
+
+    broadcast(Map.put(state, :users, new_users), "user_joined")
+  end
+
   def start_game(%{status: "pending"} = state),
     do: state |> get_state_for("turn_pending") |> broadcast("turn_update")
 

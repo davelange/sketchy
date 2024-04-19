@@ -35,6 +35,21 @@ defmodule Sketchy.Game.ServerTest do
     assert users == [new_user]
   end
 
+  test "leave removes user from state.users", %{pid: pid} do
+    new_user = %{
+      name: "Bob",
+      id: "abc",
+      guessed: false
+    }
+
+    Game.join(pid, new_user)
+    Game.leave(pid, new_user.id)
+
+    %{users: users} = Game.get_state(pid)
+
+    assert users == []
+  end
+
   test "start action changes status to turn_pending", %{pid: pid} do
     Game.user_action(pid, %{"action" => "start"})
 

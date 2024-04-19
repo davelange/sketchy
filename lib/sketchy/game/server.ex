@@ -18,6 +18,8 @@ defmodule Sketchy.Game.Server do
 
   def join(id, user), do: GenServer.cast(id, {:join, user})
 
+  def leave(id, user_id), do: GenServer.cast(id, {:leave, user_id})
+
   def user_action(id, payload), do: GenServer.cast(id, {:user_action, payload})
 
   # Callbacks
@@ -35,6 +37,11 @@ defmodule Sketchy.Game.Server do
   @impl true
   def handle_cast({:join, user}, state) do
     {:noreply, Core.join(state, user)}
+  end
+
+  @impl true
+  def handle_cast({:leave, user_id}, state) do
+    {:noreply, Core.leave(state, user_id)}
   end
 
   @impl true
