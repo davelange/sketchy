@@ -23,7 +23,7 @@ export function joinChannel({
 	id: string;
 	userName: string;
 	onJoin: EventCallback<OnJoinData>;
-	onUserJoined: EventCallback<OnUserJoinedData>;
+	onUserJoined: EventCallback<GameState>;
 	onShapesUpdated: EventCallback<OnNewData>;
 	onTurnUpdate: EventCallback<GameState>;
 	onUserGuess: EventCallback<OnUserGuess>;

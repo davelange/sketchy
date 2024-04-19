@@ -1,24 +1,18 @@
 defmodule Sketchy.Game.Core do
-  alias SketchyWeb.Endpoint
+  alias Sketchy.Game.Broadcast
+  alias Sketchy.Game.Timer
 
   def broadcast(state, event) do
-    Endpoint.broadcast(state.topic, event, get_public_state(state))
-    state
+    Broadcast.call(state.topic, event, get_public_state(state), state)
   end
 
   def broadcast(state, event, payload) do
-    Endpoint.broadcast(state.topic, event, payload)
-    state
+    Broadcast.call(state.topic, event, payload, state)
   end
 
   def join(state, user) do
-    broadcast(state, "user_joined", user)
-
-    Map.put(state, :users, [user | state.users])
+    broadcast(Map.put(state, :users, [user | state.users]), "user_joined")
   end
-
-  def start_game(%{status: "pending"} = state),
-    do: state |> get_state_for("turn_pending") |> broadcast("turn_update")
 
   def start_pending_turn(%{status: "turn_over"} = state),
     do: state |> get_state_for("turn_pending") |> broadcast("turn_update")
@@ -59,7 +53,7 @@ defmodule Sketchy.Game.Core do
   def maybe_end_turn(state) do
     case Enum.all?(get_non_active_players(state), & &1.guessed) do
       true ->
-        cancel_timer(state.timer)
+        Timer.cancel_timer(state.timer)
         end_turn(state)
 
       _ ->
@@ -104,8 +98,8 @@ defmodule Sketchy.Game.Core do
   def get_next_user(%{active_user: nil} = state), do: Enum.at(state.users, -1)
 
   def get_next_user(state) do
-    current = Enum.find_index(state.users, &(&1.id == state.active_user.id))
-    Enum.at(state.users, current + 1, Enum.at(state.users, 0))
+    current_idx = Enum.find_index(state.users, &(&1.id == state.active_user.id))
+    Enum.at(state.users, current_idx + 1, Enum.at(state.users, 0))
   end
 
   def get_non_active_players(state),
@@ -139,32 +133,12 @@ defmodule Sketchy.Game.Core do
       |> Map.put(:active_user, get_next_user(state))
 
   def get_state_for(state, "turn_over"),
-    do: state |> Map.put(:status, "turn_over") |> Map.put(:timer, schedule_next_turn())
+    do: state |> Map.put(:status, "turn_over") |> Map.put(:timer, Timer.schedule_next_turn())
 
   def get_state_for(state, "turn_ongoing", word),
     do:
       state
       |> Map.put(:status, "turn_ongoing")
       |> Map.put(:word, word)
-      |> Map.put(:timer, schedule_turn_end(state))
-
-  # Timers
-
-  defp schedule_turn_end(state),
-    do:
-      Process.send_after(
-        self(),
-        :turn_time_ended,
-        state.turn_duration
-      )
-
-  defp schedule_next_turn(),
-    do:
-      Process.send_after(
-        self(),
-        :inter_turn_time_ended,
-        5000
-      )
-
-  defp cancel_timer(ref), do: Process.cancel_timer(ref)
+      |> Map.put(:timer, Timer.schedule_turn_end(state))
 end

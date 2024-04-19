@@ -63,10 +63,8 @@
     ];
   }
 
-  function onUserJoined(user: User) {
-    if (user.id !== userId) {
-      users = [...users, user];
-    }
+  function onUserJoined(state: GameState) {
+    users = state.users;
   }
 
   function onShapesUpdated({ shapes }: { shapes: Shape[] }) {
