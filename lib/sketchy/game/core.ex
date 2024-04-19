@@ -14,6 +14,9 @@ defmodule Sketchy.Game.Core do
     broadcast(Map.put(state, :users, [user | state.users]), "user_joined")
   end
 
+  def start_game(%{status: "pending"} = state),
+    do: state |> get_state_for("turn_pending") |> broadcast("turn_update")
+
   def start_pending_turn(%{status: "turn_over"} = state),
     do: state |> get_state_for("turn_pending") |> broadcast("turn_update")
 

@@ -1,16 +1,16 @@
 defmodule SketchyWeb.GameChannelTest do
   use SketchyWeb.ChannelCase
 
-  alias Sketchy.Game
+  alias Sketchy.Game.Server
 
   setup do
-    start_supervised!({Game, %{id: "1"}})
+    start_supervised!({Server, %{id: "1"}})
     socket = socket(SketchyWeb.UserSocket)
 
     %{socket: socket}
   end
 
-  test "fails join when game not created", %{socket: socket} do
+  test "join fails when game not created", %{socket: socket} do
     assert {:error, "game not found"} =
              subscribe_and_join(socket, SketchyWeb.GameChannel, "game:NOT FOUND")
   end

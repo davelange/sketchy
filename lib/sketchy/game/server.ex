@@ -42,7 +42,7 @@ defmodule Sketchy.Game.Server do
         {:user_action, %{"action" => "start"}},
         state
       ) do
-    {:noreply, Core.start_pending_turn(state)}
+    {:noreply, Core.start_game(state)}
   end
 
   @impl true

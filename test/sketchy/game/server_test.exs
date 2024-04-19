@@ -1,9 +1,8 @@
-defmodule Sketchy.GameTest do
+defmodule Sketchy.Game.ServerTest do
   use ExUnit.Case
 
-  # alias Sketchy.TestHelpers
   alias Sketchy.TestHelpers
-  alias Sketchy.Game
+  alias Sketchy.Game.Server, as: Game
 
   setup do
     pid = start_supervised!({Game, %{id: "123"}})
@@ -12,7 +11,7 @@ defmodule Sketchy.GameTest do
   end
 
   test "game is created with initial state", %{pid: pid} do
-    state = Game.get_game_state(pid)
+    state = Game.get_state(pid)
 
     assert %{
              id: "123",
@@ -22,17 +21,18 @@ defmodule Sketchy.GameTest do
            } = state
   end
 
-  test "join adds user to state.users with guessed=false", %{pid: pid} do
+  test "join adds user to state.users", %{pid: pid} do
     new_user = %{
       name: "Bob",
-      id: "abc"
+      id: "abc",
+      guessed: false
     }
 
     Game.join(pid, new_user)
 
-    %{users: users} = Game.get_game_state(pid)
+    %{users: users} = Game.get_state(pid)
 
-    assert users == [Map.put(new_user, :guessed, false)]
+    assert users == [new_user]
   end
 
   test "start action changes status to turn_pending", %{pid: pid} do
@@ -53,11 +53,11 @@ defmodule Sketchy.GameTest do
     Game.user_action(pid, %{"action" => "start_turn", "value" => "test"})
     Game.user_action(pid, %{"action" => "update_shapes", "shapes" => [1, 2]})
 
-    assert %{shapes: [1, 2]} = Game.get_game_state(pid)
+    assert %{shapes: [1, 2]} = Game.get_state(pid)
 
     Game.user_action(pid, %{"action" => "update_shapes", "shapes" => [3, 4]})
 
-    assert %{shapes: [3, 4, 1, 2]} = Game.get_game_state(pid)
+    assert %{shapes: [3, 4, 1, 2]} = Game.get_state(pid)
   end
 
   test "guess action updates user.guessed when correct", %{pid: pid} do

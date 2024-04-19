@@ -1,8 +1,8 @@
-defmodule Sketchy.GameRegistryTest do
+defmodule Sketchy.Game.GameRegistryTest do
   use ExUnit.Case
 
-  alias Sketchy.Game
-  alias Sketchy.GameRegistry
+  alias Sketchy.Game.Server, as: Game
+  alias Sketchy.Game.GameRegistry
 
   @game_id "123"
 
