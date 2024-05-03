@@ -84,4 +84,9 @@ defmodule Sketchy.Game.Server do
   def handle_info(:inter_turn_time_ended, state) do
     {:noreply, Core.start_pending_turn(state)}
   end
+
+  @impl true
+  def handle_info(:stop, state) do
+    {:stop, :shutdown, state}
+  end
 end

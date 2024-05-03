@@ -10,4 +10,8 @@ defmodule SketchyWeb.LiveGame do
   def mount(params, _session, socket) do
     {:ok, assign(socket, :gameId, params["id"])}
   end
+
+  def handle_event("go_to_home", _params, socket) do
+    {:noreply, redirect(socket, to: "/")}
+  end
 end

@@ -39,5 +39,9 @@ defmodule SketchyWeb.GameChannel do
   def terminate({:shutdown, :local_closed}, socket) do
     {:ok, pid} = get_game_pid(socket.topic)
     GameServer.leave(pid, socket.assigns.user_id)
+    socket
   end
+
+  @impl true
+  def terminate(_reason, socket), do: socket
 end

@@ -2,6 +2,7 @@
   import Scene from "$components/Scene.svelte";
   import { onMount } from "svelte";
 
+  export let live;
   export let gameId: string;
 
   let userName: string;
@@ -20,7 +21,7 @@
 </script>
 
 {#if userName}
-  <Scene {gameId} {userName} />
+  <Scene {gameId} {userName} {live} />
 {:else}
   <h1>Join game</h1>
   <form action="" on:submit|preventDefault={onSubmit}>

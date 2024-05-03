@@ -1,8 +1,7 @@
 defmodule Sketchy.Game.Broadcast do
   alias SketchyWeb.Endpoint
 
-  def call(topic, event, payload, return) do
+  def call(topic, event, payload) do
     Endpoint.broadcast(topic, event, payload)
-    return
   end
 end

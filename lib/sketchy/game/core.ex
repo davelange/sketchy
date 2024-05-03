@@ -3,25 +3,34 @@ defmodule Sketchy.Game.Core do
   alias Sketchy.Game.Timer
 
   def broadcast(state, event) do
-    Broadcast.call(state.topic, event, get_public_state(state), state)
+    Broadcast.call(state.topic, event, get_public_state(state))
+
+    state
   end
 
   def broadcast(state, event, payload) do
-    Broadcast.call(state.topic, event, payload, state)
+    Broadcast.call(state.topic, event, payload)
+
+    state
   end
 
   def join(state, user) do
-    broadcast(Map.put(state, :users, [user | state.users]), "user_joined")
+    broadcast(Map.put(state, :users, [user | state.users]), "user_update")
   end
 
   def leave(state, user_id) do
     new_users = Enum.filter(state.users, &(&1.id != user_id))
 
-    broadcast(Map.put(state, :users, new_users), "user_joined")
+    case new_users do
+      [] -> end_game()
+      _ -> broadcast(Map.put(state, :users, new_users), "user_update")
+    end
   end
 
   def start_game(%{status: "pending"} = state),
     do: state |> get_state_for("turn_pending") |> broadcast("turn_update")
+
+  def end_game, do: Process.send(self(), :stop, [])
 
   def start_pending_turn(%{status: "turn_over"} = state),
     do: state |> get_state_for("turn_pending") |> broadcast("turn_update")
@@ -32,9 +41,7 @@ defmodule Sketchy.Game.Core do
   def update_shapes(%{status: "turn_ongoing"} = state, %{"shapes" => shapes} = payload) do
     new_state = Map.put(state, :shapes, List.flatten([shapes | state.shapes]))
 
-    broadcast(state, "shapes_updated", payload)
-
-    new_state
+    broadcast(new_state, "shapes_updated", payload)
   end
 
   def guess(%{status: "turn_ongoing"} = state, %{

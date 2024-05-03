@@ -14,6 +14,7 @@
 
   export let gameId: string;
   export let userName: string;
+  export let live: any;
 
   let users: User[] = [];
   let userId = "";
@@ -28,11 +29,16 @@
     id: gameId,
     userName,
     onJoin,
+    onJoinFail,
     onUserJoined,
     onShapesUpdated,
     onTurnUpdate,
     onUserGuess,
   });
+
+  function onJoinFail() {
+    live.pushEvent("go_to_home");
+  }
 
   function onJoin(data: OnJoinData) {
     userId = data.self.id;

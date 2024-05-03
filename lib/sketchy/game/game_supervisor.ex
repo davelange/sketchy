@@ -13,6 +13,12 @@ defmodule Sketchy.Game.GameSupervisor do
   end
 
   def start_child(game_id) do
-    DynamicSupervisor.start_child(:game_supervisor, {Server, %{id: game_id}})
+    spec = %{
+      id: {Server, []},
+      start: {Server, :start_link, [%{id: game_id}]},
+      restart: :transient
+    }
+
+    DynamicSupervisor.start_child(:game_supervisor, spec)
   end
 end
