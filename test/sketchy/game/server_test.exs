@@ -1,11 +1,16 @@
 defmodule Sketchy.Game.ServerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   alias Sketchy.TestHelpers
   alias Sketchy.Game.Server, as: Game
 
   setup do
-    pid = start_supervised!({Game, %{id: "123"}})
+    pid =
+      start_supervised!(%{
+        id: {Game, []},
+        start: {Game, :start_link, [%{id: "123"}]},
+        restart: :transient
+      })
 
     %{pid: pid}
   end
@@ -36,18 +41,25 @@ defmodule Sketchy.Game.ServerTest do
   end
 
   test "leave removes user from state.users", %{pid: pid} do
-    new_user = %{
+    bob = %{
       name: "Bob",
       id: "abc",
       guessed: false
     }
 
-    Game.join(pid, new_user)
-    Game.leave(pid, new_user.id)
+    alice = %{
+      name: "Alice",
+      id: "alice",
+      guessed: false
+    }
+
+    Game.join(pid, bob)
+    Game.join(pid, alice)
+    Game.leave(pid, bob.id)
 
     %{users: users} = Game.get_state(pid)
 
-    assert users == []
+    assert users == [alice]
   end
 
   test "start action changes status to turn_pending", %{pid: pid} do
