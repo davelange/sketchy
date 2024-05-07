@@ -1,4 +1,5 @@
 defmodule SketchyWeb.LiveGame do
+  alias Sketchy.Game.GameRegistry
   use SketchyWeb, :live_view
 
   def render(assigns) do
@@ -8,10 +9,9 @@ defmodule SketchyWeb.LiveGame do
   end
 
   def mount(params, _session, socket) do
-    {:ok, assign(socket, :gameId, params["id"])}
-  end
-
-  def handle_event("go_to_home", _params, socket) do
-    {:noreply, redirect(socket, to: "/")}
+    case GameRegistry.get_pid(params["id"]) do
+      {:ok, _pid} -> {:ok, assign(socket, :gameId, params["id"])}
+      {:error, _} -> {:ok, redirect(socket, to: "/")}
+    end
   end
 end

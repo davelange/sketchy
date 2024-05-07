@@ -14,7 +14,6 @@ export function joinChannel({
   id,
   userName,
   onJoin,
-  onJoinFail,
   onUserJoined,
   onShapesUpdated,
   onTurnUpdate,
@@ -23,7 +22,6 @@ export function joinChannel({
   id: string;
   userName: string;
   onJoin: EventCallback<OnJoinData>;
-  onJoinFail: () => void;
   onUserJoined: EventCallback<GameState>;
   onShapesUpdated: EventCallback<OnNewData>;
   onTurnUpdate: EventCallback<GameState>;
@@ -45,7 +43,6 @@ export function joinChannel({
     })
     .receive("error", (resp) => {
       console.log("Unable to join", resp);
-      onJoinFail();
     });
 
   // Attach listeners
