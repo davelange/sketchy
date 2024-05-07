@@ -1,4 +1,5 @@
 defmodule Sketchy.Game.Core do
+  alias Sketchy.Game.Points
   alias Sketchy.Game.Broadcast
   alias Sketchy.Game.Timer
 
@@ -49,7 +50,9 @@ defmodule Sketchy.Game.Core do
         "value" => value
       }) do
     correct = guess_is_correct(state, value)
-    new_state = state |> update_user_guessed(user, correct) |> maybe_end_turn()
+
+    new_state =
+      state |> update_user_guessed(user, correct) |> Points.assign(user) |> maybe_end_turn()
 
     broadcast(state, "user_guess", %{
       user: user,
@@ -108,7 +111,8 @@ defmodule Sketchy.Game.Core do
     do: %{
       name: name,
       id: Ecto.UUID.generate(),
-      guessed: false
+      guessed: false,
+      points: 0
     }
 
   def get_next_user(%{active_user: nil} = state), do: Enum.at(state.users, -1)

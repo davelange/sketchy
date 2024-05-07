@@ -30,7 +30,8 @@ defmodule Sketchy.Game.ServerTest do
     new_user = %{
       name: "Bob",
       id: "abc",
-      guessed: false
+      guessed: false,
+      points: 0
     }
 
     Game.join(pid, new_user)
@@ -44,13 +45,15 @@ defmodule Sketchy.Game.ServerTest do
     bob = %{
       name: "Bob",
       id: "abc",
-      guessed: false
+      guessed: false,
+      points: 0
     }
 
     alice = %{
       name: "Alice",
       id: "alice",
-      guessed: false
+      guessed: false,
+      points: 0
     }
 
     Game.join(pid, bob)
@@ -90,12 +93,14 @@ defmodule Sketchy.Game.ServerTest do
   test "guess action updates user.guessed when correct", %{pid: pid} do
     first_user = %{
       name: "Bob",
-      id: "123"
+      id: "123",
+      points: 0
     }
 
     second_user = %{
       name: "Alice",
-      id: "456"
+      id: "456",
+      points: 0
     }
 
     secret_word = "banana"
@@ -117,12 +122,14 @@ defmodule Sketchy.Game.ServerTest do
   test "guess action does not update user.guessed when incorrect", %{pid: pid} do
     first_user = %{
       name: "Bob",
-      id: "123"
+      id: "123",
+      points: 0
     }
 
     second_user = %{
       name: "Alice",
-      id: "456"
+      id: "456",
+      points: 0
     }
 
     secret_word = "banana"

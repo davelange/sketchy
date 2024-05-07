@@ -49,16 +49,20 @@
     turnDuration = (data.remaining_in_turn || data.turn_duration) / 1000;
   }
 
-  function onTurnUpdate({ status, active_user }: GameState) {
-    gameStatus = status;
-    activeUser = active_user;
+  function onTurnUpdate(state: GameState) {
+    gameStatus = state.status;
+    activeUser = state.active_user;
 
-    if (status === "turn_pending") {
+    if (state.status === "turn_pending") {
       $canvas.sendQueue = [];
       $canvas.incomingQueue = [];
       $canvas.shapes = [];
       $canvas.sendQueueId = 0;
       guesses = [];
+    }
+
+    if (state.status === "turn_over") {
+      users = state.users;
     }
   }
 
@@ -86,7 +90,9 @@
   <p>Players</p>
   <div>
     {#each users as user (user.id)}
-      <p style:font-weight={user.id === userId ? "bold" : ""}>{user.name}</p>
+      <p style:font-weight={user.id === userId ? "bold" : ""}>
+        {user.name} ({user.points} pts)
+      </p>
     {/each}
   </div>
   <hr />

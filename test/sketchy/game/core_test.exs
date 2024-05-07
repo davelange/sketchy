@@ -9,13 +9,15 @@ defmodule Sketchy.Game.CoreTest do
     bob = %{
       name: "Bob",
       id: "abc",
-      guessed: false
+      guessed: false,
+      points: 0
     }
 
     alice = %{
       name: "Alice",
       id: "def",
-      guessed: false
+      guessed: false,
+      points: 0
     }
 
     %{bob: bob, alice: alice}
