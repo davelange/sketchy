@@ -1,6 +1,7 @@
 defmodule Sketchy.Game.UsersTest do
-  alias Sketchy.Game.Users
   use ExUnit.Case
+
+  alias Sketchy.Game.Users
 
   setup do
     user_bob = Users.create("bob")
@@ -15,6 +16,7 @@ defmodule Sketchy.Game.UsersTest do
 
     assert user.points == 0
     assert user.guessed == false
+    assert user.played_in_round == false
   end
 
   test "add puts user in users list", %{user_bob: user_bob, user_alice: user_alice} do
@@ -35,7 +37,7 @@ defmodule Sketchy.Game.UsersTest do
     assert Users.remove(state, user_bob.id) == %{users: [user_alice]}
   end
 
-  test "if no active_user, get_next returns last user in list", %{
+  test "if no active_user, advance_active returns last user in list", %{
     user_bob: user_bob,
     user_alice: user_alice
   } do
@@ -44,12 +46,12 @@ defmodule Sketchy.Game.UsersTest do
       active_user: nil
     }
 
-    %{active_user: active_user} = Users.get_next_active(state)
+    %{active_user: active_user} = Users.advance_active(state)
 
     assert active_user == user_bob
   end
 
-  test "if active_user defined, get_next returns next user in list", %{
+  test "if active_user defined, advance_active returns last user in list that has not played", %{
     user_bob: user_bob,
     user_alice: user_alice,
     user_jim: user_jim
@@ -59,9 +61,13 @@ defmodule Sketchy.Game.UsersTest do
       active_user: user_bob
     }
 
-    %{active_user: active_user} = Users.get_next_active(state)
+    %{active_user: active_user, users: users} = Users.advance_active(state)
 
     assert active_user == user_jim
+
+    user = Enum.find(users, &(&1.id == user_jim.id))
+
+    assert user.played_in_round == true
   end
 
   test "update_guessed updates guessed property of given user", %{
@@ -88,5 +94,16 @@ defmodule Sketchy.Game.UsersTest do
     %{users: reset_users} = Users.reset_guessed(%{users: users})
 
     assert Enum.all?(reset_users, &(&1.guessed == false))
+  end
+
+  test "reset_played_in_round sets all guessed properties to false", %{
+    user_bob: user_bob,
+    user_alice: user_alice,
+    user_jim: user_jim
+  } do
+    users = Enum.map([user_alice, user_bob, user_jim], &Map.put(&1, :played_in_round, true))
+    %{users: reset_users} = Users.reset_played_in_round(%{users: users})
+
+    assert Enum.all?(reset_users, &(&1.played_in_round == false))
   end
 end

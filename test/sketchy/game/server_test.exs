@@ -1,6 +1,7 @@
 defmodule Sketchy.Game.ServerTest do
   use ExUnit.Case, async: true
 
+  alias Sketchy.Game.Users
   alias Sketchy.TestHelpers
   alias Sketchy.Game.Server, as: Game
 
@@ -27,12 +28,7 @@ defmodule Sketchy.Game.ServerTest do
   end
 
   test "join adds user to state.users", %{pid: pid} do
-    new_user = %{
-      name: "Bob",
-      id: "abc",
-      guessed: false,
-      points: 0
-    }
+    new_user = Users.create("bob")
 
     Game.join(pid, new_user)
 
@@ -42,19 +38,8 @@ defmodule Sketchy.Game.ServerTest do
   end
 
   test "leave removes user from state.users", %{pid: pid} do
-    bob = %{
-      name: "Bob",
-      id: "abc",
-      guessed: false,
-      points: 0
-    }
-
-    alice = %{
-      name: "Alice",
-      id: "alice",
-      guessed: false,
-      points: 0
-    }
+    bob = Users.create("bob")
+    alice = Users.create("alice")
 
     Game.join(pid, bob)
     Game.join(pid, alice)
@@ -66,12 +51,14 @@ defmodule Sketchy.Game.ServerTest do
   end
 
   test "start action changes status to turn_pending", %{pid: pid} do
+    Game.join(pid, Users.create("bob"))
     Game.user_action(pid, %{"action" => "start"})
 
     TestHelpers.assert_game_status(pid, "turn_pending")
   end
 
   test "start_turn action changes state to turn_ongoing", %{pid: pid} do
+    Game.join(pid, Users.create("bob"))
     Game.user_action(pid, %{"action" => "start"})
     Game.user_action(pid, %{"action" => "start_turn", "value" => "test"})
 
@@ -79,6 +66,7 @@ defmodule Sketchy.Game.ServerTest do
   end
 
   test "update_shapes action updates shapes", %{pid: pid} do
+    Game.join(pid, Users.create("bob"))
     Game.user_action(pid, %{"action" => "start"})
     Game.user_action(pid, %{"action" => "start_turn", "value" => "test"})
     Game.user_action(pid, %{"action" => "update_shapes", "shapes" => [1, 2]})
@@ -91,17 +79,8 @@ defmodule Sketchy.Game.ServerTest do
   end
 
   test "guess action updates user.guessed when correct", %{pid: pid} do
-    first_user = %{
-      name: "Bob",
-      id: "123",
-      points: 0
-    }
-
-    second_user = %{
-      name: "Alice",
-      id: "456",
-      points: 0
-    }
+    first_user = Users.create("bob")
+    second_user = Users.create("alice")
 
     secret_word = "banana"
 
@@ -120,17 +99,8 @@ defmodule Sketchy.Game.ServerTest do
   end
 
   test "guess action does not update user.guessed when incorrect", %{pid: pid} do
-    first_user = %{
-      name: "Bob",
-      id: "123",
-      points: 0
-    }
-
-    second_user = %{
-      name: "Alice",
-      id: "456",
-      points: 0
-    }
+    first_user = Users.create("bob")
+    second_user = Users.create("alice")
 
     secret_word = "banana"
 

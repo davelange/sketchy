@@ -26,7 +26,7 @@ defmodule Sketchy.Game.Core do
 
   def leave(state, user_id) do
     case Users.remove(state, user_id) do
-      %{users: []} -> end_game()
+      %{users: []} -> kill_game()
       state -> broadcast(state, "user_update")
     end
   end
@@ -55,7 +55,24 @@ defmodule Sketchy.Game.Core do
     end
   end
 
-  def end_game, do: Process.send(self(), :stop, [])
+  def kill_game, do: Process.send(self(), :stop, [])
+
+  def advance_round(state),
+    do: state |> Map.put(:round, state.round + 1) |> Users.reset_played_in_round()
+
+  def maybe_advance_round(state) do
+    case Users.all_played_in_round(state) do
+      true -> advance_round(state)
+      false -> state
+    end
+  end
+
+  def maybe_end_game(state) do
+    case state.round == state.max_rounds && Users.all_played_in_round(state) do
+      true -> Map.put(state, :status, "over")
+      false -> state
+    end
+  end
 
   # User actions
 
@@ -104,7 +121,10 @@ defmodule Sketchy.Game.Core do
           users: [],
           active_user: nil,
           shapes: [],
-          timer: nil
+          timer: nil,
+          played_in_round: [],
+          round: 1,
+          max_rounds: 3
         },
         params
       )
@@ -124,16 +144,21 @@ defmodule Sketchy.Game.Core do
       |> Map.put(:status, "turn_pending")
       |> Map.put(:shapes, [])
       |> Map.put(:word, "")
+      |> maybe_advance_round()
       |> Users.reset_guessed()
-      |> Users.get_next_active()
+      |> Users.advance_active()
 
   def get_state_when(state, "turn_over"),
-    do: state |> Map.put(:status, "turn_over") |> Map.put(:timer, Timer.schedule_next_turn())
+    do:
+      state
+      |> Map.put(:status, "turn_over")
+      |> maybe_end_game()
+      |> Timer.schedule_next_turn()
 
   def get_state_when(state, "turn_ongoing", word),
     do:
       state
       |> Map.put(:status, "turn_ongoing")
       |> Map.put(:word, word)
-      |> Map.put(:timer, Timer.schedule_turn_end(state))
+      |> Timer.schedule_turn_end()
 end

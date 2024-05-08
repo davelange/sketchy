@@ -4,7 +4,8 @@ defmodule Sketchy.Game.Users do
       name: name,
       id: Ecto.UUID.generate(),
       guessed: false,
-      points: 0
+      points: 0,
+      played_in_round: false
     }
 
   def add(state, user), do: Map.put(state, :users, [user | state.users])
@@ -12,15 +13,17 @@ defmodule Sketchy.Game.Users do
   def remove(state, user_id),
     do: Map.put(state, :users, Enum.filter(state.users, &(&1.id != user_id)))
 
-  def get_next_active(%{active_user: nil} = state) do
-    Map.put(state, :active_user, Enum.at(state.users, -1))
-  end
+  defp get_next_active(%{active_user: nil} = state), do: Enum.at(state.users, -1)
 
-  def get_next_active(state) do
-    current_idx = Enum.find_index(state.users, &(&1.id == state.active_user.id))
-    next_user = Enum.at(state.users, current_idx + 1, Enum.at(state.users, 0))
+  defp get_next_active(state),
+    do: state.users |> Enum.reverse() |> Enum.find(&(&1.played_in_round == false))
 
-    Map.put(state, :active_user, next_user)
+  def advance_active(state) do
+    next_user = get_next_active(state)
+
+    state
+    |> Map.put(:active_user, next_user)
+    |> Map.put(:users, update_played_in_round(state, next_user.id))
   end
 
   defp get_non_active(state), do: Enum.filter(state.users, &(&1.id !== state.active_user.id))
@@ -44,4 +47,21 @@ defmodule Sketchy.Game.Users do
 
     Map.put(state, :users, new_users)
   end
+
+  def all_played_in_round(state), do: Enum.all?(state.users, & &1.played_in_round)
+
+  def reset_played_in_round(state) do
+    new_users = Enum.map(state.users, &Map.put(&1, :played_in_round, false))
+
+    Map.put(state, :users, new_users)
+  end
+
+  defp update_played_in_round(state, user_id),
+    do:
+      Enum.map(state.users, fn user ->
+        case user.id == user_id do
+          true -> Map.put(user, :played_in_round, true)
+          _ -> user
+        end
+      end)
 end

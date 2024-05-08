@@ -21,6 +21,7 @@
   let gameStatus: GameStatus;
   let turnDuration: number;
   let guesses: string[] = [];
+  let round = 1;
 
   $: isActiveUser = activeUser?.id === userId;
 
@@ -53,6 +54,7 @@
       $canvas.shapes = [];
       $canvas.sendQueueId = 0;
       guesses = [];
+      round = state.round;
     }
 
     if (state.status === "turn_ongoing") {
@@ -94,7 +96,7 @@
     {/each}
   </div>
   <hr />
-  <p>State: {gameStatus}</p>
+  <p>State: {gameStatus}, Round: {round}</p>
 
   {#if gameStatus === "turn_ongoing"}
     <Timer {turnDuration} />

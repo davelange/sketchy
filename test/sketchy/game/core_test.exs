@@ -1,26 +1,16 @@
 defmodule Sketchy.Game.CoreTest do
   use ExUnit.Case
 
+  alias Sketchy.Game.Users
   alias Sketchy.Game.Core
 
   @game_id "abc"
 
   setup do
-    bob = %{
-      name: "Bob",
-      id: "abc",
-      guessed: false,
-      points: 0
-    }
+    user_bob = Users.create("bob")
+    user_alice = Users.create("alice")
 
-    alice = %{
-      name: "Alice",
-      id: "def",
-      guessed: false,
-      points: 0
-    }
-
-    %{bob: bob, alice: alice}
+    %{bob: user_bob, alice: user_alice}
   end
 
   test "get_state_when turn_pending updates state correctly", %{bob: bob, alice: alice} do

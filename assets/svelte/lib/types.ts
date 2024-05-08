@@ -30,6 +30,7 @@ export type GameState = {
   status: GameStatus;
   turn_duration: number;
   remaining_in_turn: number;
+  round: number;
 };
 
 export type OnJoinData = GameState & {
