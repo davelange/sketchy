@@ -1,6 +1,7 @@
 defmodule Sketchy.Game.PointsTest do
-  alias Sketchy.Game.Points
   use ExUnit.Case
+
+  alias Sketchy.Game.Points
 
   test "doesnt update points if user guessed=false" do
     user_id = "abc"

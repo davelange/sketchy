@@ -55,6 +55,10 @@
       guesses = [];
     }
 
+    if (state.status === "turn_ongoing") {
+      turnDuration = (state.remaining_in_turn || state.turn_duration) / 1000;
+    }
+
     if (state.status === "turn_over") {
       users = state.users;
     }

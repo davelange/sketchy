@@ -21,7 +21,8 @@
 </script>
 
 <main>
-  <h1>squiggle</h1>
+  <h1>sketchy</h1>
+  <br />
   <form on:submit|preventDefault={handleSubmit}>
     <input
       type="text"
