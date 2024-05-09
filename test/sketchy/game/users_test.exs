@@ -31,10 +31,23 @@ defmodule Sketchy.Game.UsersTest do
 
   test "remove removes given user from list", %{user_bob: user_bob, user_alice: user_alice} do
     state = %{
-      users: [user_bob, user_alice]
+      users: [user_bob, user_alice],
+      active_user_id: nil
     }
 
-    assert Users.remove(state, user_bob.id) == %{users: [user_alice]}
+    assert %{users: [user_alice], active_user_id: nil} == Users.remove(state, user_bob.id)
+  end
+
+  test "remove resets active_user if active_user is given", %{
+    user_bob: user_bob,
+    user_alice: user_alice
+  } do
+    state = %{
+      users: [user_bob, user_alice],
+      active_user_id: user_bob.id
+    }
+
+    assert Users.remove(state, user_bob.id) == %{users: [user_alice], active_user_id: nil}
   end
 
   test "if no active_user, advance_active returns last user in list", %{
@@ -43,12 +56,12 @@ defmodule Sketchy.Game.UsersTest do
   } do
     state = %{
       users: [user_alice, user_bob],
-      active_user: nil
+      active_user_id: nil
     }
 
-    %{active_user: active_user} = Users.advance_active(state)
+    %{active_user_id: active_user} = Users.advance_active(state)
 
-    assert active_user == user_bob
+    assert active_user == user_bob.id
   end
 
   test "if active_user defined, advance_active returns last user in list that has not played", %{
@@ -61,9 +74,9 @@ defmodule Sketchy.Game.UsersTest do
       active_user: user_bob
     }
 
-    %{active_user: active_user, users: users} = Users.advance_active(state)
+    %{active_user_id: active_user_id, users: users} = Users.advance_active(state)
 
-    assert active_user == user_jim
+    assert active_user_id == user_jim.id
 
     user = Enum.find(users, &(&1.id == user_jim.id))
 

@@ -26,7 +26,7 @@ export type GameStatus =
 export type GameState = {
   shapes: Shape[];
   users: User[];
-  active_user: User;
+  active_user_id: string;
   status: GameStatus;
   turn_duration: number;
   remaining_in_turn: number;

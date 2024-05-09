@@ -19,6 +19,8 @@
   });
 </script>
 
+<a href="/">Sketchy</a>
+<br />
 {#if userName}
   <Scene {gameId} {userName} />
 {:else}

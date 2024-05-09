@@ -10,10 +10,14 @@ defmodule Sketchy.Game.Users do
 
   def add(state, user), do: Map.put(state, :users, [user | state.users])
 
-  def remove(state, user_id),
-    do: Map.put(state, :users, Enum.filter(state.users, &(&1.id != user_id)))
+  def remove(state, user_id) do
+    new_state = Map.put(state, :users, Enum.filter(state.users, &(&1.id != user_id)))
 
-  defp get_next_active(%{active_user: nil} = state), do: Enum.at(state.users, -1)
+    case Map.fetch!(state, :active_user_id) == user_id do
+      true -> Map.put(new_state, :active_user_id, nil)
+      false -> new_state
+    end
+  end
 
   defp get_next_active(state),
     do: state.users |> Enum.reverse() |> Enum.find(&(&1.played_in_round == false))
@@ -22,11 +26,14 @@ defmodule Sketchy.Game.Users do
     next_user = get_next_active(state)
 
     state
-    |> Map.put(:active_user, next_user)
+    |> Map.put(:active_user_id, next_user.id)
     |> Map.put(:users, update_played_in_round(state, next_user.id))
   end
 
-  defp get_non_active(state), do: Enum.filter(state.users, &(&1.id !== state.active_user.id))
+  defp get_non_active(%{active_user_id: nil} = state), do: state.users
+
+  defp get_non_active(state),
+    do: Enum.filter(state.users, &(&1.id !== Map.fetch!(state, :active_user_id)))
 
   def update_guessed(state, guesser, correct) do
     new_users =

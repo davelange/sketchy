@@ -17,13 +17,14 @@
 
   let users: User[] = [];
   let userId = "";
-  let activeUser: User;
+  let activeUserId: string;
   let gameStatus: GameStatus;
   let turnDuration: number;
   let guesses: string[] = [];
   let round = 1;
 
-  $: isActiveUser = activeUser?.id === userId;
+  $: activeUser = users.find((item) => item.id == activeUserId);
+  $: isActiveUser = activeUserId === userId;
 
   const { updateShapes, startGame, startTurn, makeGuess } = joinChannel({
     id: gameId,
@@ -40,13 +41,13 @@
     users = [...data.users, data.self];
     $canvas.shapes = data.shapes;
     gameStatus = data.status;
-    activeUser = data.active_user;
+    activeUserId = data.active_user_id;
     turnDuration = (data.remaining_in_turn || data.turn_duration) / 1000;
   }
 
   function onTurnUpdate(state: GameState) {
     gameStatus = state.status;
-    activeUser = state.active_user;
+    activeUserId = state.active_user_id;
 
     if (state.status === "turn_pending") {
       $canvas.sendQueue = [];

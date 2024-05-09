@@ -8,11 +8,17 @@ defmodule SketchyWeb.GameChannel do
   @impl true
   def join("game:" <> game_id, payload, socket) do
     with {:ok, pid} <- get_game_pid(game_id), state <- GameServer.get_state(pid) do
-      new_user = Users.create(payload["user"])
+      case state.status do
+        "over" ->
+          {:error, "game already over"}
 
-      GameServer.join(pid, new_user)
+        _ ->
+          new_user = Users.create(payload["user"])
 
-      {:ok, Map.merge(state, %{self: new_user}), assign(socket, :user_id, new_user.id)}
+          GameServer.join(pid, new_user)
+
+          {:ok, Map.merge(state, %{self: new_user}), assign(socket, :user_id, new_user.id)}
+      end
     else
       _ -> {:error, "game not found"}
     end

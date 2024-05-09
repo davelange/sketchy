@@ -19,11 +19,16 @@ defmodule Sketchy.Game.Timer do
         Process.send_after(
           self(),
           :inter_turn_time_ended,
-          5000
+          state.inter_turn_duration
         )
       )
 
   def schedule_next_turn(state), do: state
 
-  def cancel_timer(ref), do: Process.cancel_timer(ref)
+  def cancel(state) when is_reference(state.timer) do
+    Process.cancel_timer(state.timer)
+    state
+  end
+
+  def cancel(state), do: state
 end

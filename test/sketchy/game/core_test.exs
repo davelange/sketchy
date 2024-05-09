@@ -22,7 +22,7 @@ defmodule Sketchy.Game.CoreTest do
     assert state.status == "turn_pending"
     assert state.shapes == []
     assert state.word == ""
-    assert state.active_user == alice
+    assert state.active_user_id == alice.id
   end
 
   test "get_state_when turn_over updates state correctly", %{bob: bob, alice: alice} do

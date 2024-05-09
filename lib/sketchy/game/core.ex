@@ -21,20 +21,30 @@ defmodule Sketchy.Game.Core do
   # User entry / exit
 
   def join(state, user) do
-    broadcast(Users.add(state, user), "user_update")
+    Users.add(state, user) |> broadcast("user_update")
   end
 
   def leave(state, user_id) do
-    case Users.remove(state, user_id) do
-      %{users: []} -> kill_game()
-      state -> broadcast(state, "user_update")
+    new_state = Users.remove(state, user_id)
+
+    case length(new_state.users) do
+      0 ->
+        kill_game()
+
+      1 ->
+        new_state |> broadcast("user_update") |> end_game()
+
+      _ ->
+        new_state |> broadcast("user_update") |> maybe_end_turn()
     end
   end
 
   # Status updates
 
-  def start_game(%{status: "pending"} = state),
+  def start_game(%{status: "pending"} = state) when length(state.users) > 1,
     do: state |> get_state_when("turn_pending") |> broadcast("turn_update")
+
+  def start_game(state), do: state
 
   def start_pending_turn(%{status: "turn_over"} = state),
     do: state |> get_state_when("turn_pending") |> broadcast("turn_update")
@@ -45,10 +55,9 @@ defmodule Sketchy.Game.Core do
   def end_turn(state), do: state |> get_state_when("turn_over") |> broadcast("turn_update")
 
   def maybe_end_turn(state) do
-    case Users.all_guessed(state) do
+    case Users.all_guessed(state) || state.active_user_id == nil do
       true ->
-        Timer.cancel_timer(state.timer)
-        end_turn(state)
+        state |> Timer.cancel() |> end_turn()
 
       _ ->
         state
@@ -67,9 +76,11 @@ defmodule Sketchy.Game.Core do
     end
   end
 
+  def end_game(state), do: state |> get_state_when("over") |> broadcast("turn_update")
+
   def maybe_end_game(state) do
     case state.round == state.max_rounds && Users.all_played_in_round(state) do
-      true -> Map.put(state, :status, "over")
+      true -> end_game(state)
       false -> state
     end
   end
@@ -115,11 +126,12 @@ defmodule Sketchy.Game.Core do
           # pending | turn_pending | turn_ongoing | turn_over | over
           status: "pending",
           turn_duration: 60_000,
+          inter_turn_duration: 3000,
           word: "",
           id: params.id,
           topic: "game:#{params.id}",
           users: [],
-          active_user: nil,
+          active_user_id: nil,
           shapes: [],
           timer: nil,
           played_in_round: [],
@@ -154,6 +166,11 @@ defmodule Sketchy.Game.Core do
       |> Map.put(:status, "turn_over")
       |> maybe_end_game()
       |> Timer.schedule_next_turn()
+
+  def get_state_when(state, "over"),
+    do:
+      state
+      |> Map.put(:status, "over")
 
   def get_state_when(state, "turn_ongoing", word),
     do:
