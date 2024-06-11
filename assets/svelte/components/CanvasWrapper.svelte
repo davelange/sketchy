@@ -17,11 +17,11 @@
   function handleMousemove(event: MouseEvent) {
     if (!enabled) return;
 
-    $canvas.handleNewPoint({
-      x: Math.round(event.offsetX),
-      y: Math.round(event.offsetY),
-      clicked,
-    });
+    $canvas.handleNewPoint([
+      Math.round(event.offsetX),
+      Math.round(event.offsetY),
+      Number(clicked),
+    ]);
     debouncedSend();
   }
 

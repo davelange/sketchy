@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { Point, Shape } from './types';
+import { PointAccess, type Point, type Shape } from './types';
 
 export class Canvas {
 	canvas: HTMLCanvasElement;
@@ -26,11 +26,11 @@ export class Canvas {
 	}
 
 	handleNewPoint(point: Point) {
-		if (!this.isDrawing && !point.clicked) {
+		if (!this.isDrawing && !point[PointAccess.clicked]) {
 			return;
 		}
 
-		if (this.isDrawing && !point.clicked) {
+		if (this.isDrawing && !point[PointAccess.clicked]) {
 			this.isDrawing = false;
 			this.sendQueueId++;
 
@@ -82,10 +82,10 @@ export class Canvas {
 				return;
 			}
 
-			this.context.moveTo(shape.points[0].x, shape.points[0].y);
+			this.context.moveTo(shape.points[0][PointAccess.x], shape.points[0][PointAccess.y]);
 			this.context.beginPath();
 
-			shape.points.map((point) => this.context.lineTo(point.x, point.y));
+			shape.points.map((point) => this.context.lineTo(point[PointAccess.x], point[PointAccess.y]));
 
 			this.context.stroke();
 		});

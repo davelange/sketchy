@@ -4,11 +4,17 @@ export type User = {
   points: number;
 };
 
-export type Point = {
-  x: number;
-  y: number;
-  clicked: boolean;
-};
+export type Point = [
+  x: number,
+  y: number,
+  clicked: number
+];
+
+export enum PointAccess {
+  x = 0,
+  y = 1,
+  clicked = 2,
+}
 
 export type Shape = {
   points: Point[];
