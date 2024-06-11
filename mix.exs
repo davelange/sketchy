@@ -57,7 +57,7 @@ defmodule Sketchy.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
-      {:live_svelte, "~> 0.13.1"}
+      {:live_svelte, "~> 0.13.2"}
     ]
   end
 
@@ -69,7 +69,6 @@ defmodule Sketchy.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      # setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
       setup: ["deps.get", "ecto.setup", "cmd --cd assets npm install"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
@@ -81,11 +80,6 @@ defmodule Sketchy.MixProject do
         "cmd --cd assets node build.js --deploy",
         "phx.digest"
       ]
-      # "assets.deploy": [
-      #  "tailwind sketchy --minify",
-      #  "esbuild sketchy --minify",
-      #  "phx.digest"
-      # ]
     ]
   end
 end
