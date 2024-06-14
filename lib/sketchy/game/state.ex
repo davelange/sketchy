@@ -9,15 +9,17 @@ defmodule Sketchy.Game.State do
             active_user_id: nil,
             shapes: [],
             timer: nil,
-            played_in_round: [],
             round: 1,
             max_rounds: 3
 
   def init(params) do
-    struct(__MODULE__, %{
-      id: params.id,
-      topic: "game:#{params.id}"
-    })
+    struct(
+      __MODULE__,
+      Map.merge(params, %{
+        id: params.id,
+        topic: "game:#{params.id}"
+      })
+    )
   end
 
   def get_public(state) do

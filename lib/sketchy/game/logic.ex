@@ -1,4 +1,5 @@
 defmodule Sketchy.Game.Logic do
+  alias Sketchy.GameRegistry
   alias Sketchy.Game.Points
   alias Sketchy.Game.Broadcast
   alias Sketchy.Game.Timer
@@ -51,6 +52,12 @@ defmodule Sketchy.Game.Logic do
     |> Timer.schedule_turn_end()
   end
 
+  def guard_transition(struct, "turn_pending", _meta) do
+    if length(struct.users) < 2 do
+      {:error, "Cant start turn without more players"}
+    end
+  end
+
   # State transitions: after
 
   def after_transition(struct, _state, _metadata), do: Broadcast.call(struct, "turn_update")
@@ -66,7 +73,7 @@ defmodule Sketchy.Game.Logic do
 
     case length(new_state.users) do
       0 ->
-        kill_game()
+        kill_game(new_state)
 
       1 ->
         new_state |> Broadcast.call("user_update") |> end_game()
@@ -103,21 +110,21 @@ defmodule Sketchy.Game.Logic do
     })
   end
 
-  def guess_is_correct(state, value), do: String.downcase(value) == String.downcase(state.word)
+  defp guess_is_correct(state, value), do: String.downcase(value) == String.downcase(state.word)
 
   # Logic
 
-  def advance_round(state),
+  defp advance_round(state),
     do: state |> Map.put(:round, state.round + 1) |> Users.reset_played_in_round()
 
-  def maybe_advance_round(state) do
+  defp maybe_advance_round(state) do
     case Users.all_played_in_round(state) do
       true -> advance_round(state)
       false -> state
     end
   end
 
-  def maybe_end_turn(state) do
+  defp maybe_end_turn(state) do
     case Users.all_guessed(state) || state.active_user_id == nil do
       true ->
         state |> Timer.cancel() |> update_state("turn_over")
@@ -127,14 +134,17 @@ defmodule Sketchy.Game.Logic do
     end
   end
 
-  def end_game(state), do: update_state(state, "over")
+  defp end_game(state), do: update_state(state, "over")
 
-  def maybe_end_game(state) do
+  defp maybe_end_game(state) do
     case state.round == state.max_rounds && Users.all_played_in_round(state) do
       true -> end_game(state)
       false -> state
     end
   end
 
-  def kill_game, do: Process.send(self(), :stop, [])
+  defp kill_game(state) do
+    {:ok, pid} = GameRegistry.get_pid(state.id)
+    Process.send(pid, :stop, [])
+  end
 end

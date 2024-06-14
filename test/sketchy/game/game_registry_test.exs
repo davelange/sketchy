@@ -1,8 +1,8 @@
 defmodule Sketchy.Game.GameRegistryTest do
   use ExUnit.Case
 
-  alias Sketchy.Game.Server, as: Game
-  alias Sketchy.Game.GameRegistry
+  alias Sketchy.Game.Server
+  alias Sketchy.GameRegistry
 
   @game_id "123"
 
@@ -13,7 +13,7 @@ defmodule Sketchy.Game.GameRegistryTest do
   end
 
   test "returns Game pid registered with id successfully" do
-    start_supervised!({Game, %{id: @game_id}})
+    start_supervised!({Server, %{id: @game_id}})
 
     assert {:ok, _pid} = GameRegistry.get_pid(@game_id)
   end
