@@ -1,5 +1,5 @@
 defmodule SketchyWeb.LiveGame do
-  alias Sketchy.Game.GameRegistry
+  alias Sketchy.GameRegistry
   use SketchyWeb, :live_view
 
   def render(assigns) do

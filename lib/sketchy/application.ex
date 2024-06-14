@@ -2,8 +2,8 @@ defmodule Sketchy.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
-  alias Sketchy.Game.GameRegistry
-  alias Sketchy.Game.GameSupervisor
+  alias Sketchy.GameRegistry
+  alias Sketchy.GameSupervisor
 
   use Application
 

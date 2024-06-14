@@ -1,4 +1,4 @@
-defmodule Sketchy.Game.GameSupervisor do
+defmodule Sketchy.GameSupervisor do
   use DynamicSupervisor
 
   alias Sketchy.Game.Server

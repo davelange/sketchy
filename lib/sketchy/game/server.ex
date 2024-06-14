@@ -1,15 +1,16 @@
 defmodule Sketchy.Game.Server do
   use GenServer
 
-  alias Sketchy.Game.Core
-  alias Sketchy.Game.GameRegistry
+  alias Sketchy.Game.State
+  alias Sketchy.Game.Logic
+  alias Sketchy.GameRegistry
 
   # Client
 
   def start_link(params) do
     GenServer.start_link(
       __MODULE__,
-      Core.get_initial_state(params),
+      State.init(params),
       name: GameRegistry.get_via(params.id)
     )
   end
@@ -31,17 +32,17 @@ defmodule Sketchy.Game.Server do
 
   @impl true
   def handle_call(:get_state, _from, state) do
-    {:reply, Core.get_public_state(state), state}
+    {:reply, State.get_public(state), state}
   end
 
   @impl true
   def handle_cast({:join, user}, state) do
-    {:noreply, Core.join(state, user)}
+    {:noreply, Logic.add_user(state, user)}
   end
 
   @impl true
   def handle_cast({:leave, user_id}, state) do
-    {:noreply, Core.leave(state, user_id)}
+    {:noreply, Logic.remove_user(state, user_id)}
   end
 
   @impl true
@@ -49,7 +50,7 @@ defmodule Sketchy.Game.Server do
         {:user_action, %{"action" => "start"}},
         state
       ) do
-    {:noreply, Core.start_game(state)}
+    {:noreply, Logic.update_state(state, "turn_pending")}
   end
 
   @impl true
@@ -57,14 +58,14 @@ defmodule Sketchy.Game.Server do
         {:user_action, %{"action" => "start_turn"} = payload},
         state
       ) do
-    {:noreply, Core.start_turn(state, payload)}
+    {:noreply, Logic.update_state(state, "turn_ongoing", payload)}
   end
 
   def handle_cast(
         {:user_action, %{"action" => "update_shapes"} = payload},
         state
       ) do
-    {:noreply, Core.update_shapes(state, payload)}
+    {:noreply, Logic.update_shapes(state, payload)}
   end
 
   @impl true
@@ -72,17 +73,18 @@ defmodule Sketchy.Game.Server do
         {:user_action, %{"action" => "guess"} = payload},
         state
       ) do
-    {:noreply, Core.guess(state, payload)}
+    {:noreply, Logic.guess(state, payload)}
   end
 
   @impl true
   def handle_info(:turn_time_ended, state) do
-    {:noreply, Core.end_turn(state)}
+    {:noreply, Logic.update_state(state, "turn_over")}
   end
 
   @impl true
   def handle_info(:inter_turn_time_ended, state) do
-    {:noreply, Core.start_pending_turn(state)}
+    IO.inspect("state: #{state.state}")
+    {:noreply, Logic.update_state(state, "turn_pending")}
   end
 
   @impl true

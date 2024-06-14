@@ -2,20 +2,20 @@ defmodule SketchyWeb.GameChannel do
   use SketchyWeb, :channel
 
   alias Sketchy.Game.Users
-  alias Sketchy.Game.GameRegistry
-  alias Sketchy.Game.Server, as: GameServer
+  alias Sketchy.GameRegistry
+  alias Sketchy.Game.Server
 
   @impl true
   def join("game:" <> game_id, payload, socket) do
-    with {:ok, pid} <- get_game_pid(game_id), state <- GameServer.get_state(pid) do
-      case state.status do
+    with {:ok, pid} <- get_game_pid(game_id), state <- Server.get_state(pid) do
+      case state.state do
         "over" ->
           {:error, "game already over"}
 
         _ ->
           new_user = Users.create(payload["user"])
 
-          GameServer.join(pid, new_user)
+          Server.join(pid, new_user)
 
           {:ok, Map.merge(state, %{self: new_user}), assign(socket, :user_id, new_user.id)}
       end
@@ -34,7 +34,7 @@ defmodule SketchyWeb.GameChannel do
   @impl true
   def handle_in("user_action", payload, socket) do
     case get_game_pid(socket.topic) do
-      {:ok, pid} -> GameServer.user_action(pid, payload)
+      {:ok, pid} -> Server.user_action(pid, payload)
       _ -> nil
     end
 
@@ -44,7 +44,7 @@ defmodule SketchyWeb.GameChannel do
   @impl true
   def terminate({:shutdown, :local_closed}, socket) do
     {:ok, pid} = get_game_pid(socket.topic)
-    GameServer.leave(pid, socket.assigns.user_id)
+    Server.leave(pid, socket.assigns.user_id)
     socket
   end
 

@@ -1,7 +1,7 @@
 defmodule SketchyWeb.LiveHome do
   use SketchyWeb, :live_view
 
-  alias Sketchy.Game.GameSupervisor
+  alias Sketchy.GameSupervisor
 
   def render(assigns) do
     ~H"""

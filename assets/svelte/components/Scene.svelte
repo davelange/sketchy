@@ -40,16 +40,16 @@
     userId = data.self.id;
     users = [...data.users, data.self];
     $canvas.shapes = data.shapes;
-    gameStatus = data.status;
+    gameStatus = data.state;
     activeUserId = data.active_user_id;
     turnDuration = (data.remaining_in_turn || data.turn_duration) / 1000;
   }
 
   function onTurnUpdate(state: GameState) {
-    gameStatus = state.status;
+    gameStatus = state.state;
     activeUserId = state.active_user_id;
 
-    if (state.status === "turn_pending") {
+    if (state.state === "turn_pending") {
       $canvas.sendQueue = [];
       $canvas.incomingQueue = [];
       $canvas.shapes = [];
@@ -58,11 +58,11 @@
       round = state.round;
     }
 
-    if (state.status === "turn_ongoing") {
+    if (state.state === "turn_ongoing") {
       turnDuration = (state.remaining_in_turn || state.turn_duration) / 1000;
     }
 
-    if (state.status === "turn_over") {
+    if (state.state === "turn_over") {
       users = state.users;
     }
   }
