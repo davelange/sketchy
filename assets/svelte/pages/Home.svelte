@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Layout from "$components/Layout.svelte";
   import { onMount } from "svelte";
 
   export let live;
@@ -20,17 +21,23 @@
   });
 </script>
 
-<main>
-  <h1>sketchy</h1>
-  <br />
-  <form on:submit|preventDefault={handleSubmit}>
-    <input
-      type="text"
-      name="name"
-      bind:value={name}
-      placeholder="Your name"
-      required
-    />
-    <button type="submit">Create game</button>
-  </form>
-</main>
+<Layout>
+  <main>
+    <form
+      on:submit|preventDefault={handleSubmit}
+      class="flex flex-col gap-2 w-fit mx-auto"
+    >
+      <h1>Start new game</h1>
+      <input
+        type="text"
+        name="name"
+        bind:value={name}
+        placeholder="Your name"
+        required
+      />
+      <button type="submit" class="bg-violet-700 py-2 text-white">
+        Create game
+      </button>
+    </form>
+  </main>
+</Layout>

@@ -1,11 +1,12 @@
 defmodule SketchyWeb.LiveHome do
   use SketchyWeb, :live_view
+  use LiveSvelte.Components
 
   alias Sketchy.GameSupervisor
 
   def render(assigns) do
     ~H"""
-    <.svelte name="pages/Home" socket={@socket} />
+    <.svelte name="pages/Home" class="h-full bg-blue-300" socket={@socket} />
     """
   end
 

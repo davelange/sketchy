@@ -1,14 +1,18 @@
-export type User = {
+export type Player = {
   id: string;
   name: string;
-  points: number;
+  team: string;
 };
 
-export type Point = [
-  x: number,
-  y: number,
-  clicked: number
-];
+export type Team = {
+  id: string;
+  name: string;
+  score: number;
+  word_guessed: false;
+  active_user_id: string;
+};
+
+export type Point = [x: number, y: number, clicked: number];
 
 export enum PointAccess {
   x = 0,
@@ -18,8 +22,8 @@ export enum PointAccess {
 
 export type Shape = {
   points: Point[];
-  closed?: boolean;
-  id?: number;
+  id?: string;
+  idx?: number;
 };
 
 export type GameStatus =
@@ -31,24 +35,21 @@ export type GameStatus =
 
 export type GameState = {
   shapes: Shape[];
-  users: User[];
+  players: Player[];
+  teams: Team[];
   active_user_id: string;
-  status: GameStatus;
+  state: GameStatus;
   turn_duration: number;
   remaining_in_turn: number;
   round: number;
 };
 
 export type OnJoinData = GameState & {
-  self: User;
+  self: Player;
 };
 
-export type OnUserJoinedData = User;
+export type OnShapesUpdated = { shapes: Shape[]; player: string };
 
-export type OnNewData = {
-  shapes: Shape[];
-};
-
-export type OnUserGuess = { user: User; value: string; correct: boolean };
+export type OnUserGuess = { user: Player; value: string; correct: boolean };
 
 export type TurnAction = "start" | "start_turn";

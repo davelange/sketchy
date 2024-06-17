@@ -1,12 +1,13 @@
 defmodule Sketchy.Game.State do
+  alias Sketchy.Game.Teams
+
   defstruct state: "pending",
             turn_duration: 60_000,
             inter_turn_duration: 3000,
-            word: "",
             id: nil,
             topic: "",
-            users: [],
-            active_user_id: nil,
+            players: [],
+            teams: [],
             shapes: [],
             timer: nil,
             round: 1,
@@ -17,7 +18,11 @@ defmodule Sketchy.Game.State do
       __MODULE__,
       Map.merge(params, %{
         id: params.id,
-        topic: "game:#{params.id}"
+        topic: "game:#{params.id}",
+        teams: [
+          Teams.create("Team 1"),
+          Teams.create("Team 2")
+        ]
       })
     )
   end

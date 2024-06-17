@@ -1,9 +1,10 @@
 defmodule Sketchy.Game.Logic do
+  alias Sketchy.Game.Score
+  alias Sketchy.Game.Teams
   alias Sketchy.GameRegistry
-  alias Sketchy.Game.Points
   alias Sketchy.Game.Broadcast
   alias Sketchy.Game.Timer
-  alias Sketchy.Game.Users
+  alias Sketchy.Game.Players
 
   use Machinery,
     field: :state,
@@ -24,7 +25,7 @@ defmodule Sketchy.Game.Logic do
         result
 
       {:error, cause} ->
-        IO.inspect(cause)
+        IO.inspect("Failed transition: #{cause}")
         struct
     end
   end
@@ -34,10 +35,10 @@ defmodule Sketchy.Game.Logic do
   def before_transition(struct, "turn_pending", _meta) do
     struct
     |> Map.put(:shapes, [])
-    |> Map.put(:word, "")
+    |> Teams.reset_words()
     |> maybe_advance_round()
-    |> Users.reset_guessed()
-    |> Users.advance_active()
+    |> Teams.advance_active_players()
+    |> Players.update_played_in_round()
   end
 
   def before_transition(struct, "turn_over", _meta) do
@@ -46,15 +47,23 @@ defmodule Sketchy.Game.Logic do
     |> Timer.schedule_next_turn()
   end
 
-  def before_transition(struct, "turn_ongoing", %{"value" => value}) do
-    struct
-    |> Map.put(:word, value)
-    |> Timer.schedule_turn_end()
+  def before_transition(struct, "turn_ongoing", _meta) do
+    Timer.schedule_turn_end(struct)
   end
 
+  # State transitions: guards
+
   def guard_transition(struct, "turn_pending", _meta) do
-    if length(struct.users) < 2 do
-      {:error, "Cant start turn without more players"}
+    cond do
+      Teams.sizes_valid(struct) == false -> {:error, "Teams aren't complete"}
+      true -> :ok
+    end
+  end
+
+  def guard_transition(struct, "turn_ongoing", _meta) do
+    cond do
+      Teams.all_words_set(struct) == true -> :ok
+      true -> {:error, "Teams haven't chosen words yet"}
     end
   end
 
@@ -65,13 +74,13 @@ defmodule Sketchy.Game.Logic do
   # User movement
 
   def add_user(state, user) do
-    Users.add(state, user) |> Broadcast.call("user_update")
+    Players.add(state, user) |> Broadcast.call("user_update")
   end
 
   def remove_user(state, user_id) do
-    new_state = Users.remove(state, user_id)
+    new_state = state |> Players.remove(user_id) |> Teams.maybe_unset_active_player(user_id)
 
-    case length(new_state.users) do
+    case length(new_state.players) do
       0 ->
         kill_game(new_state)
 
@@ -83,6 +92,10 @@ defmodule Sketchy.Game.Logic do
     end
   end
 
+  def set_user_team(state, %{"user" => user, "team_id" => team_id}) do
+    state |> Players.choose_team(user["id"], team_id) |> Broadcast.call("user_update")
+  end
+
   # Shapes
 
   def update_shapes(%{state: "turn_ongoing"} = state, %{"shapes" => shapes} = payload) do
@@ -91,17 +104,36 @@ defmodule Sketchy.Game.Logic do
     |> Broadcast.call("shapes_updated", payload)
   end
 
-  # Guess
+  def update_shapes(state, _payload), do: state
+
+  # Word
+
+  def set_team_word(state, %{
+        "user" => user,
+        "value" => value
+      }) do
+    state
+    |> Teams.set_word(Players.get_team(state, user["id"]), value)
+    |> maybe_start_turn_ongoing()
+  end
+
+  def maybe_start_turn_ongoing(state) do
+    cond do
+      Teams.all_words_set(state) -> update_state(state, "turn_ongoing")
+      true -> state
+    end
+  end
 
   def guess(%{state: "turn_ongoing"} = state, %{
         "user" => user,
         "value" => value
       }) do
-    correct = guess_is_correct(state, value)
+    team_id = Players.get_team(state, user["id"])
+    correct = guess_is_correct(state, value, team_id)
 
     state
-    |> Users.update_guessed(user, correct)
-    |> Points.assign(user)
+    |> Teams.update_guessed(team_id, correct)
+    |> Score.update(team_id, correct)
     |> maybe_end_turn()
     |> Broadcast.call("user_guess", %{
       user: user,
@@ -110,22 +142,30 @@ defmodule Sketchy.Game.Logic do
     })
   end
 
-  defp guess_is_correct(state, value), do: String.downcase(value) == String.downcase(state.word)
+  defp guess_is_correct(state, value, team_id) do
+    word =
+      state.teams
+      |> Enum.find(&(&1.id == team_id))
+      |> Map.fetch!(:word)
+      |> String.downcase()
+
+    word == String.downcase(value)
+  end
 
   # Logic
 
   defp advance_round(state),
-    do: state |> Map.put(:round, state.round + 1) |> Users.reset_played_in_round()
+    do: state |> Map.put(:round, state.round + 1) |> Players.reset_played_in_round()
 
   defp maybe_advance_round(state) do
-    case Users.all_played_in_round(state) do
+    case Players.all_played_in_round(state) do
       true -> advance_round(state)
       false -> state
     end
   end
 
   defp maybe_end_turn(state) do
-    case Users.all_guessed(state) || state.active_user_id == nil do
+    case Teams.all_words_guessed(state) || Teams.active_player_unset(state) do
       true ->
         state |> Timer.cancel() |> update_state("turn_over")
 
@@ -137,7 +177,7 @@ defmodule Sketchy.Game.Logic do
   defp end_game(state), do: update_state(state, "over")
 
   defp maybe_end_game(state) do
-    case state.round == state.max_rounds && Users.all_played_in_round(state) do
+    case state.round == state.max_rounds && Players.all_played_in_round(state) do
       true -> end_game(state)
       false -> state
     end

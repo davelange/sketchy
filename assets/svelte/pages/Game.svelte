@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Layout from "$components/Layout.svelte";
   import Scene from "$components/Scene.svelte";
   import { onMount } from "svelte";
 
@@ -19,14 +20,19 @@
   });
 </script>
 
-<a href="/">Sketchy</a>
-<br />
-{#if userName}
-  <Scene {gameId} {userName} />
-{:else}
-  <h1>Join game</h1>
-  <form action="" on:submit|preventDefault={onSubmit}>
-    <input type="text" name="name" placeholder="Your name" required />
-    <button type="submit">Play</button>
-  </form>
-{/if}
+<Layout>
+  {#if userName}
+    <Scene {gameId} {userName} />
+  {:else}
+    <form
+      on:submit|preventDefault={onSubmit}
+      class="flex flex-col gap-2 w-fit mx-auto"
+    >
+      <h1>Join this game</h1>
+      <input type="text" name="name" placeholder="Your name" required />
+      <button type="submit" class="bg-violet-700 py-2 text-white">
+        Join
+      </button>
+    </form>
+  {/if}
+</Layout>

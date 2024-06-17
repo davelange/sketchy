@@ -1,101 +1,164 @@
-import { writable } from 'svelte/store';
-import { PointAccess, type Point, type Shape } from './types';
+import { writable } from "svelte/store";
+import { PointAccess, type Point, type Shape } from "./types";
+let c = ["tomato", "indigo", "pink", "teal"];
+
+function getQueueChunkSize(length: number) {
+  return Math.max(Math.round(length * 0.15), 1);
+}
 
 export class Canvas {
-	canvas: HTMLCanvasElement;
-	context: CanvasRenderingContext2D;
-	shapes: Shape[] = [];
-	sendQueue: Shape[] = [];
-	incomingQueue: Shape[] = [];
-	sendQueueId = 0;
-	isDrawing = false;
+  playerId: string;
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D;
+  shapes: Shape[] = [];
+  outQueue: Shape[] = [];
+  inQueue: Shape[] = [];
+  outQueueId = 0;
+  isDrawing = false;
 
-	setup(canvasEl: HTMLCanvasElement) {
-		if (this.canvas) return;
-		
-		this.canvas = canvasEl;
-		this.context = this.canvas.getContext('2d')!;
-		this.context.lineJoin = 'round';
-		this.context.lineCap = 'round';
-		this.context.lineWidth = 20;
-		this.context.strokeStyle = 'black';
-	}
+  setup(canvasEl: HTMLCanvasElement, playerId: string) {
+    if (this.canvas) return;
 
-	clear() {
-		this.context.clearRect(0, 0, 800, 600);
-	}
+    this.playerId = playerId;
+    this.canvas = canvasEl;
+    this.context = this.canvas.getContext("2d")!;
+    this.context.lineJoin = "round";
+    this.context.lineCap = "round";
+    this.context.lineWidth = 20;
+    this.context.strokeStyle = "black";
+  }
 
-	handleNewPoint(point: Point) {
-		if (!this.isDrawing && !point[PointAccess.clicked]) {
-			return;
-		}
+  clear() {
+    this.context.clearRect(0, 0, 800, 600);
+  }
 
-		if (this.isDrawing && !point[PointAccess.clicked]) {
-			this.isDrawing = false;
-			this.sendQueueId++;
+  reset() {
+    this.outQueue = [];
+    this.inQueue = [];
+    this.shapes = [];
+    this.outQueueId = 0;
+  }
 
-			return;
-		}
+  handleNewPoint(point: Point) {
+    if (!this.isDrawing && !point[PointAccess.clicked]) {
+      return;
+    }
 
-		if (!this.isDrawing) {
-			this.shapes.push({
-				points: [point]
-			});
-			this.sendQueue.push({
-				points: [point],
-				id: this.sendQueueId
-			});
-			this.isDrawing = true;
+    if (this.isDrawing && !point[PointAccess.clicked]) {
+      this.isDrawing = false;
+      this.outQueueId++;
 
-			return;
-		}
+      return;
+    }
 
-		if (this.isDrawing) {
-			this.shapes.at(-1)?.points.push(point);
-			this.sendQueue.at(-1)?.points.push(point);
+    if (!this.isDrawing && point[PointAccess.clicked]) {
+      this.shapes.push({
+        points: [point],
+      });
+      this.outQueue.push({
+        points: [point],
+        id: `${this.playerId}_${this.outQueueId}`,
+      });
+      this.isDrawing = true;
 
-			return;
-		}
-	}
+      return;
+    }
 
-	handleQueue() {
-		if (!this.incomingQueue.length) return;
+    if (this.isDrawing && point[PointAccess.clicked]) {
+      this.shapes.at(-1)?.points.push(point);
+      this.outQueue.at(-1)?.points.push(point);
 
-		const nextPoint = this.incomingQueue.at(0)?.points.shift();
+      return;
+    }
+  }
 
-		if (!this.shapes.length || this.shapes.at(-1)?.id !== this.incomingQueue.at(0)?.id) {
-			this.shapes.push({ points: [], id: this.incomingQueue.at(0)?.id });
-		}
+  getOutQueuePayload() {
+    if (!this.outQueue.length) {
+      return null;
+    }
 
-		if (nextPoint) {
-			this.shapes.at(-1)?.points.push(nextPoint);
-		}
+    const payload = {
+      shapes: this.outQueue.filter((list) => list.points.length),
+      player: this.playerId,
+    };
 
-		if (!this.incomingQueue.at(0)?.points.length) {			
-			this.incomingQueue.shift();
-		}
-	}
+    if (!payload.shapes.length) {
+      return null;
+    }
 
-	renderShapes() {
-		this.shapes.forEach((shape) => {
-			if (!shape.points?.length) {
-				return;
-			}
+    this.outQueue = [
+      {
+        points: [],
+        id: payload.shapes.at(-1)?.id,
+      },
+    ];
 
-			this.context.moveTo(shape.points[0][PointAccess.x], shape.points[0][PointAccess.y]);
-			this.context.beginPath();
+    return payload;
+  }
 
-			shape.points.map((point) => this.context.lineTo(point[PointAccess.x], point[PointAccess.y]));
+  handleInQueue() {
+    if (!this.inQueue.length) {
+      return;
+    }
 
-			this.context.stroke();
-		});
-	}
+    if (!this.inQueue.at(0)?.points.length) {
+      this.inQueue.shift();
 
-	handleFrame() {
-		this.handleQueue();
-		this.clear();
-		this.renderShapes();
-	}
+      if (!this.inQueue.at(0)) return;
+    }
+
+    const nextPoints = this.inQueue
+      .at(0)
+      ?.points.splice(0, getQueueChunkSize(this.inQueue.at(0)?.points.length));
+
+    console.log(nextPoints);
+
+    this.mergePoints(nextPoints, this.inQueue.at(0).id);
+  }
+
+  mergeShapes(newShapes: Shape[]) {
+    for (const shape of newShapes.slice().reverse()) {
+      this.mergePoints(shape.points, shape.id);
+    }
+  }
+
+  mergePoints(points: Point[], shapeId: string) {
+    for (const point of points) {
+      if (!this.shapes.length || this.shapes.at(-1)?.id !== shapeId) {
+        this.shapes.push({ points: [], id: shapeId });
+      }
+
+      this.shapes.at(-1)?.points.push(point);
+    }
+  }
+
+  renderShapes() {
+    this.shapes.forEach((shape) => {
+      if (!shape.points?.length) {
+        return;
+      }
+
+      this.context.strokeStyle = c[shape.points.length % c.length];
+
+      this.context.beginPath();
+
+      this.context.moveTo(
+        shape.points[0][PointAccess.x],
+        shape.points[0][PointAccess.y]
+      );
+      shape.points.map((point) =>
+        this.context.lineTo(point[PointAccess.x], point[PointAccess.y])
+      );
+
+      this.context.stroke();
+    });
+  }
+
+  handleFrame() {
+    this.handleInQueue();
+    this.clear();
+    this.renderShapes();
+  }
 }
 
 export const canvas = writable(new Canvas());

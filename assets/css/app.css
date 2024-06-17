@@ -3,3 +3,10 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+html,
+body,
+[data-phx-main],
+[phx-hook="SvelteHook"] {
+  height: 100%;
+}

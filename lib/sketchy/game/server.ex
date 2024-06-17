@@ -61,6 +61,25 @@ defmodule Sketchy.Game.Server do
     {:noreply, Logic.update_state(state, "turn_ongoing", payload)}
   end
 
+  @impl true
+  def handle_cast(
+        {:user_action,
+         %{
+           "action" => "choose_team"
+         } = payload},
+        state
+      ) do
+    {:noreply, Logic.set_user_team(state, payload)}
+  end
+
+  @impl true
+  def handle_cast(
+        {:user_action, %{"action" => "set_word"} = payload},
+        state
+      ) do
+    {:noreply, Logic.set_team_word(state, payload)}
+  end
+
   def handle_cast(
         {:user_action, %{"action" => "update_shapes"} = payload},
         state
@@ -83,7 +102,6 @@ defmodule Sketchy.Game.Server do
 
   @impl true
   def handle_info(:inter_turn_time_ended, state) do
-    IO.inspect("state: #{state.state}")
     {:noreply, Logic.update_state(state, "turn_pending")}
   end
 

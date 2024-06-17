@@ -1,7 +1,7 @@
 defmodule SketchyWeb.GameChannel do
   use SketchyWeb, :channel
 
-  alias Sketchy.Game.Users
+  alias Sketchy.Game.Players
   alias Sketchy.GameRegistry
   alias Sketchy.Game.Server
 
@@ -13,7 +13,7 @@ defmodule SketchyWeb.GameChannel do
           {:error, "game already over"}
 
         _ ->
-          new_user = Users.create(payload["user"])
+          new_user = Players.create(payload["user"])
 
           Server.join(pid, new_user)
 
