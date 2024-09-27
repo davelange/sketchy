@@ -21,13 +21,12 @@ import Config
 # end
 
 if config_env() == :prod do
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  # maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :sketchy, Sketchy.Repo,
-    # ssl: true,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    socket_options: maybe_ipv6,
-    server: true
+  # config :sketchy, Sketchy.Repo,
+  #  # ssl: true,
+  #  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+  #  socket_options: maybe_ipv6
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
