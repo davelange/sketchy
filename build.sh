@@ -3,10 +3,12 @@
 set -o errexit
 
 # Initial setup
-mix deps.get --only prod
-MIX_ENV=prod mix compile
+#mix deps.get --only prod
 
 # Compile assets
+MIX_ENV=prod mix setup
+MIX_ENV=prod mix compile
+
 MIX_ENV=prod mix assets.setup
 MIX_ENV=prod mix assets.build
 MIX_ENV=prod mix assets.deploy
