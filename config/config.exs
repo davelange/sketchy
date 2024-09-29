@@ -8,7 +8,7 @@
 import Config
 
 config :sketchy,
-  ecto_repos: [Sketchy.Repo],
+  ecto_repos: [],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint

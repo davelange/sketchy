@@ -12,7 +12,6 @@ defmodule Sketchy.Application do
     children = [
       {NodeJS.Supervisor, [path: LiveSvelte.SSR.NodeJS.server_path(), pool_size: 4]},
       SketchyWeb.Telemetry,
-      Sketchy.Repo,
       {DNSCluster, query: Application.get_env(:sketchy, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Sketchy.PubSub},
       # Start the Finch HTTP client for sending emails
