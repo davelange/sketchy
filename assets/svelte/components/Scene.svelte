@@ -12,7 +12,6 @@
   import Timer from "./Timer.svelte";
   import TeamsBoard from "./TeamsBoard.svelte";
   import GameStatusDisplay from "./GameStatusDisplay.svelte";
-  import mock from "./mock";
   import SecretForm from "./SecretForm.svelte";
   import GuessForm from "./GuessForm.svelte";
 
@@ -124,7 +123,6 @@
               on:click={startGame}
               type="button"
               class="bg-violet-700 p-2 text-white disabled:cursor-not-allowed disabled:bg-violet-500"
-              disabled={!teamSizesValid}
             >
               Start game
             </button>

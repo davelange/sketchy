@@ -5,8 +5,8 @@
     "@typescript-eslint/parser": "^7.0.0",
     "esbuild": "^0.16.17",
     "esbuild-plugin-import-glob": "^0.1.1",
-    "esbuild-svelte": "^0.8.1",
-    "svelte": "^4.2.18",
+    "esbuild-svelte": "^0.8.2",
+    "svelte": "^4.2.19",
     "svelte-preprocess": "^5.1.4",
     "typescript": "^5.0.0"
   },

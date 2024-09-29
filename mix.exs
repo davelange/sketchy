@@ -57,7 +57,7 @@ defmodule Sketchy.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
-      {:live_svelte, "~> 0.13.2"},
+      {:live_svelte, "~> 0.14.0"},
       {:machinery, "~> 1.1.0"}
     ]
   end
@@ -77,7 +77,7 @@ defmodule Sketchy.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind sketchy", "esbuild sketchy"],
       "assets.deploy": [
-        "tailwind default --minify",
+        "tailwind sketchy --minify",
         "cmd --cd assets node build.js --deploy",
         "phx.digest"
       ]

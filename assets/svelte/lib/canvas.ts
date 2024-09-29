@@ -3,7 +3,11 @@ import { PointAccess, type Point, type Shape } from "./types";
 let c = ["tomato", "indigo", "pink", "teal"];
 
 function getQueueChunkSize(length: number) {
-  return Math.max(Math.round(length * 0.15), 1);
+  if (length > 30) {
+    return 3;
+  }
+
+  return 1;
 }
 
 export class Canvas {
@@ -111,8 +115,6 @@ export class Canvas {
       .at(0)
       ?.points.splice(0, getQueueChunkSize(this.inQueue.at(0)?.points.length));
 
-    console.log(nextPoints);
-
     this.mergePoints(nextPoints, this.inQueue.at(0).id);
   }
 
@@ -137,8 +139,6 @@ export class Canvas {
       if (!shape.points?.length) {
         return;
       }
-
-      this.context.strokeStyle = c[shape.points.length % c.length];
 
       this.context.beginPath();
 
