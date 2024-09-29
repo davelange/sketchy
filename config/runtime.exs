@@ -36,7 +36,7 @@ if config_env() == :prod do
   host = System.get_env("RENDER_EXTERNAL_HOSTNAME") || System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
-  config :sketchy, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  config :sketchy, :dns_cluster_query, System.get_env("RENDER_SERVICE_NAME")
 
   config :sketchy, SketchyWeb.Endpoint,
     url: [host: host, port: 80, scheme: "https"],
